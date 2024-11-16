@@ -8,15 +8,15 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import dotenv from "dotenv";
 dotenv.config();
 
-type ExtendedProfile = {profileAddy: string, points: number};
 export const suiClient = new SuiClient({ url: process.env.REACT_APP_SUI_NETWORK });
 
 const kp_import_0 = Ed25519Keypair.fromSecretKey(process.env.REACT_APP_PK);
 const pk = kp_import_0.getPublicKey();
 const sender = pk.toSuiAddress();
-const addToListMap = new Map<string, ExtendedProfile>();
+const addToListMap = new Map<string, number>();
 let addToListNonce = 0;
 const globalNonceAddy = process.env.REACT_APP_NONCE_ADDRESS;
+// let firstGo = true;
 
 export const GetObjectContents = async (id: string): Promise<any> => {
 	let data: SuiObjectResponse = {};
@@ -37,7 +37,8 @@ export const GetObjectContents = async (id: string): Promise<any> => {
 };
 
 GetObjectContents(globalNonceAddy).then((obj) => {
-  addToListNonce = obj.nonce;
+  console.log(obj);
+  addToListNonce = parseInt(obj.data.nonce);
 });
 
 setInterval(() => {
@@ -48,11 +49,11 @@ setInterval(() => {
   addToListEventListener();
 }, 5000);
 
-const createAIMoveTx = (gameId: string, col: number): Transaction => {
+const aiMoveCreateTx = (gameId: string, col: number): Transaction => {
   const txb = new Transaction();
   txb.moveCall({
     target: `${process.env.REACT_APP_PACKAGE_ADDRESS}::single_player::ai_make_move`,
-    arguments: [txb.object(gameId), txb.pure.u64(col)],
+    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS), txb.object(gameId), txb.pure.u64(col)],
   });
   txb.setSender(sender);
   txb.setGasPrice(1000);
@@ -60,21 +61,17 @@ const createAIMoveTx = (gameId: string, col: number): Transaction => {
   return txb;
 }
 
-const createNewGameTx = /*async*/ (p1: string, p2: string, extended_profile1: ExtendedProfile, extended_profile2: ExtendedProfile): Transaction => { //Promise<Transaction> => {
+const newGameCreateTx = /*async*/ (p1: string, p2: string): Transaction => { //Promise<Transaction> => {
   const txb = new Transaction();
   // await GetObjectContents(gameId).then((wrappedGameData) => {
   txb.moveCall({
     target: `${process.env.REACT_APP_PACKAGE_ADDRESS}::multi_player::attempt_pairing`,
-    arguments: [txb.sharedObjectRef({
-      objectId: process.env.REACT_APP_ADMIN_CAP_ADDRESS,
-      mutable: false,
-      initialSharedVersion: process.env.REACT_APP_ADMIN_CAP_INITIAL_VERSION
-    }), txb.pure.address(p1), txb.pure.address(p2), txb.pure.address(extended_profile1.profileAddy), txb.pure.address(extended_profile2.profileAddy)],
+    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS), txb.pure.address(p1), txb.pure.address(p2)],
   });
 // });
   txb.setSender(sender);
   txb.setGasPrice(1000);
-  txb.setGasBudget(2000000);
+  txb.setGasBudget(20000000);
   return txb;
 }
 
@@ -87,9 +84,9 @@ const sendTransaction = async (txb: Transaction) => {
     transactionBlock: bytes,
     signature: serializedSignature,
   });
+  return res;
 }
 
-export const myNetwork = "testnet";
 export const fetchEvents = async (eventType: string) => {
 	try {
 	  let queryParams: QueryEventsParams = {
@@ -128,7 +125,7 @@ export const fetchEvents = async (eventType: string) => {
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
               let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.ceil(Math.random()*16)] : ai.findBestMove();
               console.log(`The AI suggests playing in column: ${bestMoveColumn}`);
-              sendTransaction(createAIMoveTx(gameId, bestMoveColumn)).then(success => {
+              sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
                 console.log(success);
               }).catch(error => {
                 console.log(error);
@@ -148,18 +145,26 @@ export const fetchEvents = async (eventType: string) => {
       let newBiggestAddToListNonce = addToListNonce;
 			events?.forEach((event) => {
 				let eventData = event.parsedJson as any;
-        let addy = eventData.game;
-        let nonce = eventData.nonce;
-				if (!addToListMap.has(addy) && nonce > addToListNonce){
+        let addy = eventData.addy;
+        let nonce = parseInt(eventData.nonce);
+        console.log(nonce);
+        console.log(addToListNonce);
+        // console.log(firstGo);
+				if (!addToListMap.has(addy) && nonce > addToListNonce && addToListNonce > 0){// && !firstGo){
+          console.log("ADD_TO_LIST_EVENT");
+          console.log(eventData);
           if(nonce > newBiggestAddToListNonce){
             newBiggestAddToListNonce = nonce;
           }
-          addToListMap.set(addy, {
-            profileAddy: eventData.profileAddy,
-            points: eventData.points
-          });
+          addToListMap.set(addy, eventData.points);
 				}
 			});
+      // if(firstGo){
+      //   firstGo = false;
+
+      // }
+      console.log("pizza4");
+      console.log(addToListMap);
       makeMatches(newBiggestAddToListNonce);
 		}).catch(error => {
       console.log(error);
@@ -167,16 +172,18 @@ export const fetchEvents = async (eventType: string) => {
 	};
 
   function makeMatches(newBiggestAddToListNonce: number){
+    console.log("pizza1");
+    console.log(newBiggestAddToListNonce);
     addToListNonce = newBiggestAddToListNonce;
     let keys = getSortedKeysByPoints();
     for(let i = 0; i < Math.floor(keys.length/2); i++){
+      console.log("pizza2");
       const p1 = keys[i];
       const p2 = keys[i+1];
-      const extended_profile1 = addToListMap.get(p1);
-      const extended_profile2 = addToListMap.get(p2);
       addToListMap.delete(p1);
       addToListMap.delete(p2);
-      sendTransaction(createNewGameTx(p1, p2, extended_profile1, extended_profile2)).then(success => {
+      sendTransaction(newGameCreateTx(p1, p2)).then(success => {
+        console.log("pizza3");
         console.log(success);
         addToListMap.delete(keys[i]);
         addToListMap.delete(keys[i+1]);
@@ -190,7 +197,7 @@ export const fetchEvents = async (eventType: string) => {
     // Convert the Map to an array of[key, value] pairs
     return Array.from(addToListMap.entries())
         // Sort the array based on the points value in descending order
-        .sort((a, b) => b[1].points - a[1].points)
+        .sort((a, b) => b[1] - a[1])
         // Map back to just the keys (profileAddy)
         .map(([key]) => key);
 }
