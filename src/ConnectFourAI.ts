@@ -3,7 +3,7 @@ const BOARD_HEIGHT = 6;
 const PLAYER_AI = 2;
 const PLAYER_HUMAN = 1;
 const WIN_LENGTH = 4;
-const MAX_DEPTH = 4; // Depth limit for minimax to keep computation reasonable
+const MAX_DEPTH = 2; // Depth limit for minimax to keep computation reasonable
 
 class ConnectFourAI {
     board: number[][];

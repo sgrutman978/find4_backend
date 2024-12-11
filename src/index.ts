@@ -5,17 +5,20 @@ import { getFullnodeUrl, QueryEventsParams, SuiClient, SuiObjectChangeCreated, S
 import ConnectFourAI from './ConnectFourAI';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
-import dotenv from "dotenv";
-dotenv.config();
+//import dotenv from "dotenv";
+//dotenv.config();
 
-export const suiClient = new SuiClient({ url: process.env.REACT_APP_SUI_NETWORK });
+import * as dotenv from "dotenv";
+dotenv.config({ path: '.env' });
 
-const kp_import_0 = Ed25519Keypair.fromSecretKey(process.env.REACT_APP_PK);
+export const suiClient = new SuiClient({ url: process.env.REACT_APP_SUI_NETWORK! });
+
+const kp_import_0 = Ed25519Keypair.fromSecretKey(process.env.REACT_APP_PK!);
 const pk = kp_import_0.getPublicKey();
 const sender = pk.toSuiAddress();
 const addToListMap = new Map<string, number>();
 let addToListNonce = 0;
-const globalNonceAddy = process.env.REACT_APP_NONCE_ADDRESS;
+const globalNonceAddy = process.env.REACT_APP_NONCE_ADDRESS!;
 // let firstGo = true;
 
 export const GetObjectContents = async (id: string): Promise<any> => {
@@ -32,7 +35,9 @@ export const GetObjectContents = async (id: string): Promise<any> => {
 		data = data2;
 		// console.log(data2);
 		dataSet = true;
-	});
+	}).catch(error => {
+        console.log(error);
+      });
 	return dataSet ? {data: (data?.data?.content as any)["fields"], version: data.data?.owner} : {data: [], version: ""};
 };
 
@@ -53,7 +58,7 @@ const aiMoveCreateTx = (gameId: string, col: number): Transaction => {
   const txb = new Transaction();
   txb.moveCall({
     target: `${process.env.REACT_APP_PACKAGE_ADDRESS}::single_player::ai_make_move`,
-    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS), txb.object(gameId), txb.pure.u64(col)],
+    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS!), txb.object(gameId), txb.pure.u64(col)],
   });
   txb.setSender(sender);
   txb.setGasPrice(1000);
@@ -66,7 +71,7 @@ const newGameCreateTx = /*async*/ (p1: string, p2: string): Transaction => { //P
   // await GetObjectContents(gameId).then((wrappedGameData) => {
   txb.moveCall({
     target: `${process.env.REACT_APP_PACKAGE_ADDRESS}::multi_player::attempt_pairing`,
-    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS), txb.pure.address(p1), txb.pure.address(p2)],
+    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS!), txb.pure.address(p1), txb.pure.address(p2)],
   });
 // });
   txb.setSender(sender);
@@ -90,7 +95,7 @@ const sendTransaction = async (txb: Transaction) => {
 export const fetchEvents = async (eventType: string) => {
 	try {
 	  let queryParams: QueryEventsParams = {
-		query: {MoveEventType: `${process.env.REACT_APP_PACKAGE_ADDRESS}::${eventType}`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
+		query: {MoveEventType: `${process.env.REACT_APP_ORIGINAL_ADDRESS_FOR_EVENT_AND_OBJECT_TYPE}::${eventType}`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
 		order: "descending",
 		limit: 10,
 	  };
