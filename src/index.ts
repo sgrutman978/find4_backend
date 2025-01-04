@@ -108,7 +108,7 @@ export const fetchEvents = async (eventType: string) => {
   };
 
 	const singlePlayerEventListener = () => {
-    console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
+    //console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
 		fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove").then((events) => {
       let gameIdSet = new Set();
 			events?.forEach((event) => {
@@ -129,7 +129,7 @@ export const fetchEvents = async (eventType: string) => {
               let ai = new ConnectFourAI(board);
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
               let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.ceil(Math.random()*16)] : ai.findBestMove();
-              console.log(`The AI suggests playing in column: ${bestMoveColumn}`);
+      //        console.log(`The AI suggests playing in column: ${bestMoveColumn}`);
               sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
                 console.log(success);
               }).catch(error => {
@@ -145,19 +145,19 @@ export const fetchEvents = async (eventType: string) => {
 	};
 
   const addToListEventListener = () => {
-    console.log("Listening for AddToListEvent...");
+    //console.log("Listening for AddToListEvent...");
 		fetchEvents("multi_player::AddToListEvent").then((events) => {
       let newBiggestAddToListNonce = addToListNonce;
 			events?.forEach((event) => {
 				let eventData = event.parsedJson as any;
         let addy = eventData.addy;
         let nonce = parseInt(eventData.nonce);
-        console.log(nonce);
-        console.log(addToListNonce);
+        //console.log(nonce);
+        //console.log(addToListNonce);
         // console.log(firstGo);
 				if (!addToListMap.has(addy) && nonce > addToListNonce && addToListNonce > 0){// && !firstGo){
-          console.log("ADD_TO_LIST_EVENT");
-          console.log(eventData);
+      //    console.log("ADD_TO_LIST_EVENT");
+          //console.log(eventData);
           if(nonce > newBiggestAddToListNonce){
             newBiggestAddToListNonce = nonce;
           }
@@ -168,8 +168,8 @@ export const fetchEvents = async (eventType: string) => {
       //   firstGo = false;
 
       // }
-      console.log("pizza4");
-      console.log(addToListMap);
+      //console.log("pizza4");
+      //console.log(addToListMap);
       makeMatches(newBiggestAddToListNonce);
 		}).catch(error => {
       console.log(error);
@@ -177,19 +177,19 @@ export const fetchEvents = async (eventType: string) => {
 	};
 
   function makeMatches(newBiggestAddToListNonce: number){
-    console.log("pizza1");
-    console.log(newBiggestAddToListNonce);
+    //console.log("pizza1");
+    //console.log(newBiggestAddToListNonce);
     addToListNonce = newBiggestAddToListNonce;
     let keys = getSortedKeysByPoints();
     for(let i = 0; i < Math.floor(keys.length/2); i++){
-      console.log("pizza2");
+      //console.log("pizza2");
       const p1 = keys[i];
       const p2 = keys[i+1];
       addToListMap.delete(p1);
       addToListMap.delete(p2);
       sendTransaction(newGameCreateTx(p1, p2)).then(success => {
-        console.log("pizza3");
-        console.log(success);
+        //console.log("pizza3");
+        //console.log(success);
         addToListMap.delete(keys[i]);
         addToListMap.delete(keys[i+1]);
       }).catch(error => {
