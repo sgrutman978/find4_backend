@@ -4,22 +4,94 @@ import { getFullnodeUrl, QueryEventsParams, SuiClient, SuiObjectChangeCreated, S
 // import { useCallback, useState } from "react";
 import ConnectFourAI from './ConnectFourAI';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
 
 //import dotenv from "dotenv";
 //dotenv.config();
 
+/*
+type OnlineStatus = {
+    addy: string,
+    epoch: number
+};*/
+
 import * as dotenv from "dotenv";
 dotenv.config({ path: '.env' });
 
-export const suiClient = new SuiClient({ url: process.env.REACT_APP_SUI_NETWORK! });
+const app = express();
+const port = 3001;
+
+export const suiClient = new SuiClient({ url: getFullnodeUrl("testnet") });
 
 const kp_import_0 = Ed25519Keypair.fromSecretKey(process.env.REACT_APP_PK!);
 const pk = kp_import_0.getPublicKey();
 const sender = pk.toSuiAddress();
 const addToListMap = new Map<string, number>();
 let addToListNonce = 0;
-const globalNonceAddy = process.env.REACT_APP_NONCE_ADDRESS!;
+const OGAddy = port == 3000 ? process.env.REACT_APP_ORIGINAL_ADDRESS_FOR_EVENT_AND_OBJECT_TYPE_MAINNET! : process.env.REACT_APP_ORIGINAL_ADDRESS_FOR_EVENT_AND_OBJECT_TYPE!;
+const adminCap = port == 3000 ? process.env.REACT_APP_ADMIN_CAP_ADDRESS_MAINNET! : process.env.REACT_APP_ADMIN_CAP_ADDRESS!;
+const packageAddy = port == 3000 ? process.env.REACT_APP_PACKAGE_ADDRESS_MAINNET! : process.env.REACT_APP_PACKAGE_ADDRESS!;
+const globalNonceAddy = port == 3000 ? process.env.REACT_APP_NONCE_ADDRESS_MAINNET! : process.env.REACT_APP_NONCE_ADDRESS!;
 // let firstGo = true;
+const currentOnline = new Map<string, number>();
+
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// Define a route handler for the root path
+app.post('/imonline', (req, res) => {
+  // console.log("helloooooooo");
+  // console.log(req.body);
+   //console.log("hellloooooooo2");
+   //console.log(req.body.addy);
+   //console.log("helloooooo3");
+   let addy = req.body.addy;
+   let epoch = Date.now();
+   currentOnline.set(addy, epoch);
+   res.send('Online');
+});
+
+/*
+app.post('/imonline2', (req, res) => {
+   console.log("helloooooooo");
+   console.log(req.body);
+   console.log("hellloooooooo2");
+   console.log(req.body.addy);
+   console.log("helloooooo3");
+   let addy = req.body.addy;
+   let epoch = Date.now();
+   currentOnline.set(addy, epoch);
+   res.send('O status updated');
+});*/
+
+app.get('/howmanyonline', (req, res) => {
+  // console.log("rrrrrrrrrrrr");
+    res.json({size: currentOnline.size});
+   // console.log("ttttttttttttttttt");
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}/`);
+});
+
+setInterval(() => {
+	currentOnline.forEach((value, key, map) => {
+	    if(Date.now() - value > 69000){
+		map.delete(key);
+	    }
+	});
+	//console.log(currentOnline.size);
+	//console.log(currentOnline);
+
+/*	GetObjectContents("0xd2126d45f8a0dadc5b12d649a1a28f24f2b3cd4ba8b60cb11e697f574f294e79").then((obj) => {
+  console.log(obj);
+  addToListNonce = parseInt(obj.data.nonce);
+});*/
+}, 15000);
 
 export const GetObjectContents = async (id: string): Promise<any> => {
 	let data: SuiObjectResponse = {};
@@ -57,8 +129,8 @@ setInterval(() => {
 const aiMoveCreateTx = (gameId: string, col: number): Transaction => {
   const txb = new Transaction();
   txb.moveCall({
-    target: `${process.env.REACT_APP_PACKAGE_ADDRESS}::single_player::ai_make_move`,
-    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS!), txb.object(gameId), txb.pure.u64(col)],
+    target: `${packageAddy}::single_player::ai_make_move`,
+    arguments: [txb.object(adminCap), txb.object(gameId), txb.pure.u64(col)],
   });
   txb.setSender(sender);
   txb.setGasPrice(1000);
@@ -70,8 +142,8 @@ const newGameCreateTx = /*async*/ (p1: string, p2: string): Transaction => { //P
   const txb = new Transaction();
   // await GetObjectContents(gameId).then((wrappedGameData) => {
   txb.moveCall({
-    target: `${process.env.REACT_APP_PACKAGE_ADDRESS}::multi_player::attempt_pairing`,
-    arguments: [txb.object(process.env.REACT_APP_ADMIN_CAP_ADDRESS!), txb.pure.address(p1), txb.pure.address(p2)],
+    target: `${packageAddy}::multi_player::attempt_pairing`,
+    arguments: [txb.object(adminCap), txb.pure.address(p1), txb.pure.address(p2)],
   });
 // });
   txb.setSender(sender);
@@ -95,7 +167,7 @@ const sendTransaction = async (txb: Transaction) => {
 export const fetchEvents = async (eventType: string) => {
 	try {
 	  let queryParams: QueryEventsParams = {
-		query: {MoveEventType: `${process.env.REACT_APP_ORIGINAL_ADDRESS_FOR_EVENT_AND_OBJECT_TYPE}::${eventType}`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
+		query: {MoveEventType: `${OGAddy}::${eventType}`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
 		order: "descending",
 		limit: 10,
 	  };
