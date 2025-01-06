@@ -55,6 +55,8 @@ const currentOnline = new Map<string, number>();
 const gamesPerUser = new Map<string, Set<string>>();
 const allGamesInfo = new Map<string, GameBasicInfo>();
 const allAddys = new Set<string>();
+allAddys.add("0x8418bb05799666b73c4645aa15e4d1ccae824e1487c01a665f51767826d192b7");
+allAddys.add("0x35f1de2d4b389c76e57a617688f9034e7ac57a22d0e19ff54541ae93e270d0b0");
 
 // Read SSL certificate and key files
 // const options = {
