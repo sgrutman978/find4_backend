@@ -64,7 +64,8 @@ const allAddys = new Set<string>();
 
 // Create HTTPS server
 // const server = https.createServer(options, app);
-const server = https.createServer({    key: fs.readFileSync('./key.pem'),    cert: fs.readFileSync('./cert.pem'),    passphrase: process.env.REACT_APP_CERT_PASSWORD}, app);
+const server = https.createServer({ key: fs.readFileSync('./key2.pem'), cert: fs.readFileSync('./cert2.pem')}, app);
+// passphrase: process.env.REACT_APP_CERT_PASSWORD}
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -170,7 +171,7 @@ app.get('/myGames', (req, res) => {
 // });
 
 server.listen(3000, () => {
-  console.log('HTTPS server listening on port 443');
+  console.log('HTTPS server listening on port '+3000);
 });
 
 setInterval(() => {
