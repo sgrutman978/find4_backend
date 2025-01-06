@@ -78,7 +78,7 @@ app.post('/imonline', (req, res) => {
    allAddys.add(addy);
    let epoch = Date.now();
    currentOnline.set(addy, epoch);
-   console.log("ll");
+  //  console.log("ll");
    if(addy){
     getUserGamesAndLatestGameBasicInfo(addy, true);
    }
@@ -345,7 +345,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
     //console.log("Listening for AddToListEvent...");
 		fetchEvents("multi_player::MultiPlayerGameStartedEvent2", false).then((events) => {
       // let newBiggestAddToListNonce = addToListNonce;
-      console.log("NEW MULTI EVENT");
+      // console.log("NEW MULTI EVENT");
       // console.log(events);
 			events?.forEach((event) => {
 				let eventData = event.parsedJson as any;
@@ -354,17 +354,17 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
         let p2 = eventData.p2;
         let nonce = eventData.nonce;
         if(nonce > globalNonce){
-          console.log("NEW EVENTTTTTTTTTTTTTTTTTTT");
-          console.log(eventData);
+          // console.log("NEW EVENTTTTTTTTTTTTTTTTTTT");
+          // console.log(eventData);
           getBasicGameInfo(gameId);
           getUserGamesAndLatestGameBasicInfo(p1, false);
           getUserGamesAndLatestGameBasicInfo(p2, false);
           globalNonce = nonce;
-          console.log("HHHHHHHHHHH");
-          console.log(allGamesInfo);
-          console.log(gamesPerUser);
+          // console.log("HHHHHHHHHHH");
+          // console.log(allGamesInfo);
+          // console.log(gamesPerUser);
         }else{
-          console.log("ALREADY SEEN")
+          // console.log("ALREADY SEEN")
         }
         // console.log(allGamesInfo);
         // console.log(gamesPerUser);
