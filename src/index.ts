@@ -49,6 +49,7 @@ const globalNonceAddy = port == 3000 ? process.env.REACT_APP_NONCE_ADDRESS_MAINN
 const currentOnline = new Map<string, number>();
 const gamesPerUser = new Map<string, Set<string>>();
 const allGamesInfo = new Map<string, GameBasicInfo>();
+const allAddys = new Set<string>();
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -56,6 +57,7 @@ app.use(bodyParser.json());
 app.post('/imonline', (req, res) => {
   try{
    let addy = req.body.addy;
+   allAddys.add(addy);
    let epoch = Date.now();
    currentOnline.set(addy, epoch);
    console.log("ll");
@@ -114,6 +116,26 @@ const getBasicGameInfo = (gameId: string) => {
 
 app.get('/howmanyonline', (req, res) => {
     res.json({size: currentOnline.size});
+});
+
+function getRandomElementFromSet<T>(set: Set<T>): T | undefined {
+  if (set.size === 0) {
+    return undefined;
+  }
+  const values = Array.from(set);
+  const randomIndex = Math.floor(Math.random() * values.length);
+  return values[randomIndex];
+}
+
+app.get('/getP2', (req, res) => {
+  const addy = req.query.addy as string;
+  while(true){
+    let randomAddy = getRandomElementFromSet(allAddys);
+    if(addy != randomAddy){
+      res.json({p2: randomAddy});
+      break;
+    }
+  }
 });
 
 app.get('/myGames', (req, res) => {
