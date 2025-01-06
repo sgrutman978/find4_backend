@@ -7,6 +7,11 @@ import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import https from 'https';
+import fs from 'fs';
+
+// const https = require('https');
+// const fs = require('fs');
 
 //import dotenv from "dotenv";
 //dotenv.config();
@@ -50,6 +55,16 @@ const currentOnline = new Map<string, number>();
 const gamesPerUser = new Map<string, Set<string>>();
 const allGamesInfo = new Map<string, GameBasicInfo>();
 const allAddys = new Set<string>();
+
+// Read SSL certificate and key files
+// const options = {
+//   key: fs.readFileSync('key.pem'),
+//   cert: fs.readFileSync('cert.pem')
+// };
+
+// Create HTTPS server
+// const server = https.createServer(options, app);
+const server = https.createServer({    key: fs.readFileSync('./key.pem'),    cert: fs.readFileSync('./cert.pem'),    passphrase: process.env.REACT_APP_CERT_PASSWORD}, app);
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -150,8 +165,12 @@ app.get('/myGames', (req, res) => {
   res.json({games: games});
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}/`);
+// app.listen(port, () => {
+//   console.log(`Server running at http://localhost:${port}/`);
+// });
+
+server.listen(3000, () => {
+  console.log('HTTPS server listening on port 443');
 });
 
 setInterval(() => {
