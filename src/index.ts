@@ -147,7 +147,7 @@ app.get('/getP2', (req, res) => {
   const addy = req.query.addy as string;
   while(true){
     let randomAddy = getRandomElementFromSet(allAddys);
-    if(addy != randomAddy){
+    if(randomAddy && addy != randomAddy){
       res.json({p2: randomAddy});
       break;
     }
@@ -190,10 +190,10 @@ setInterval(() => {
 }, 15000);
 
 export const GetGamesListForUser = async (addy: String): Promise<string[]> => {
-  console.log("22222MY GAMESSSSSSS2222");
+  // console.log("22222MY GAMESSSSSSS2222");
 	let data: string[] = [];
-  console.log(addy);
-  console.log("LLLLLLL");
+  // console.log(addy);
+  // console.log("LLLLLLL");
     await suiClient.getDynamicFieldObject({
 		parentId: innerGamesTrackerAddy!,
 		name: {
@@ -204,7 +204,7 @@ export const GetGamesListForUser = async (addy: String): Promise<string[]> => {
 		if(data2!.data){
       // console.log((data2!.data!.content! as any).fields.value);
 			let tmp = (data2!.data!.content! as any).fields.value;
-      console.log("MY GAMESSSSSSS");
+      // console.log("MY GAMESSSSSSS");
 			// console.log(tmp);
 			data = tmp;
 		}
@@ -299,7 +299,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
   };
 
 	const singlePlayerEventListener = () => {
-    console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
+    // console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
 		fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove", true).then((events) => {
       let gameIdSet = new Set();
 			events?.forEach((event) => {
@@ -307,11 +307,11 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
         let gameId = eventData.game;
 				if (!gameIdSet.has(gameId)){
           gameIdSet.add(gameId);
-          console.log("jjjjj");
+          // console.log("jjjjj");
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
-            console.log(eventData.nonce);
-            console.log(gameData.nonce);
+            // console.log(eventData.nonce);
+            // console.log(gameData.nonce);
             if (eventData.nonce == gameData.nonce && gameData.gameType == 1 && !gameData.is_game_over){
               let originalBoard = gameData.board.reverse();
               let board = Array(6).fill(null).map(() => Array(7).fill(0));
