@@ -210,7 +210,9 @@ export const GetGamesListForUser = async (addy: String): Promise<string[]> => {
 			// console.log(tmp);
 			data = tmp;
 		}
-	});
+	}).catch(error => {
+    console.log("GetGamesListForUser Error: " + error.status);
+  });
 	return data;
 };
 
@@ -229,8 +231,8 @@ export const GetObjectContents = async (id: string): Promise<any> => {
 		// console.log(data2);
 		dataSet = true;
 	}).catch(error => {
-        console.log(error);
-      });
+        console.log("GetObjectContents Error: " + error.status);
+  });
 	return dataSet ? {data: (data?.data?.content as any)["fields"], version: data.data?.owner} : {data: [], version: ""};
 };
 
@@ -241,11 +243,11 @@ GetObjectContents(globalNonceAddy).then((obj) => {
 
 setInterval(() => {
   singlePlayerEventListener();
-}, 1800);
+}, 3600);
 
 setInterval(() => {
   addToListEventListener();
-}, 5000);
+}, 15000);
 
 const aiMoveCreateTx = (gameId: string, col: number): Transaction => {
   const txb = new Transaction();
@@ -295,8 +297,8 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
 	  const response = await suiClient.queryEvents(queryParams);
     const responseData = [...response.data];
 	  return responseData || [];
-	} catch (error) {
-	  console.error('Error fetching events:', error);
+	} catch (e) {
+	  console.log('fetchingEvents Error:' + (e! as any).status);
 	}
   };
 
@@ -311,6 +313,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
           gameIdSet.add(gameId);
           // console.log("jjjjj");
           if(allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce){
+            console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
