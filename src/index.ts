@@ -310,6 +310,8 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
 				if (!gameIdSet.has(gameId)){
           gameIdSet.add(gameId);
           // console.log("jjjjj");
+          if(allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce){
+            //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
             // console.log(eventData.nonce);
@@ -328,12 +330,16 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
               let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.ceil(Math.random()*16)] : ai.findBestMove();
       //        console.log(`The AI suggests playing in column: ${bestMoveColumn}`);
               sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
+                //setup for next time player move come in in advance
+                allGamesInfo.get(gameId)!.nonce! = allGamesInfo.get(gameId)?.nonce! + 2;
+                allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
                 console.log(success);
               }).catch(error => {
                 console.log(error);
               });
             }
           })
+        }
 				}
 			});
 		}).catch(error => {
