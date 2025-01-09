@@ -38,7 +38,7 @@ dotenv.config({ path: '.env' });
 const app = express();
 const port: number = 3000;
 
-export const suiClient = new SuiClient({ url: getFullnodeUrl("mainnet") });
+export const suiClient = new SuiClient({ url: "https://go.getblock.io/2e301c1cd2e542e897c7a14109d81baf"}); //getFullnodeUrl("mainnet") });
 
 const kp_import_0 = Ed25519Keypair.fromSecretKey(process.env.REACT_APP_PK!);
 const pk = kp_import_0.getPublicKey();
@@ -79,7 +79,7 @@ app.post('/imonline', (req, res) => {
    let epoch = Date.now();
    currentOnline.set(addy, epoch);
   //  console.log("ll");
-   if(addy){
+   if(addy && !gamesPerUser.has(addy)){
     getUserGamesAndLatestGameBasicInfo(addy, true);
    }
    res.send('Online');
