@@ -311,8 +311,10 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
         let gameId = eventData.game;
 				if (!gameIdSet.has(gameId)){
           gameIdSet.add(gameId);
-          // console.log("jjjjj");
-          if(allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce){
+           console.log("jjjjj");
+         console.log(allGamesInfo.get(gameId)?.nonce);
+	console.log(eventData.nonce); 
+	  if(allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce){
             console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
@@ -334,7 +336,11 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
       //        console.log(`The AI suggests playing in column: ${bestMoveColumn}`);
               sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
                 //setup for next time player move come in in advance
-                allGamesInfo.get(gameId)!.nonce! = allGamesInfo.get(gameId)?.nonce! + 2;
+		console.log("glad ur happpppypypypypypypyp");
+                console.log(allGamesInfo.get(gameId));
+		console.log(allGamesInfo.get(gameId).nonce);
+		console.log(allGamesInfo.get(gameId)?.nonce! + 2);
+		allGamesInfo.get(gameId)!.nonce! = allGamesInfo.get(gameId)?.nonce! + 2;
                 allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
                 console.log(success);
               }).catch(error => {
