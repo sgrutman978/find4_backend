@@ -314,7 +314,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
            console.log("jjjjj");
          console.log(allGamesInfo.get(gameId)?.nonce);
 	console.log(eventData.nonce); 
-	  if(allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce){
+	  if(!allGamesInfo.get(gameId) || (allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce)){
             console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
@@ -338,7 +338,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
                 //setup for next time player move come in in advance
 		console.log("glad ur happpppypypypypypypyp");
                 console.log(allGamesInfo.get(gameId));
-		console.log(allGamesInfo.get(gameId).nonce);
+		console.log(allGamesInfo.get(gameId)?.nonce);
 		console.log(allGamesInfo.get(gameId)?.nonce! + 2);
 		allGamesInfo.get(gameId)!.nonce! = allGamesInfo.get(gameId)?.nonce! + 2;
                 allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
