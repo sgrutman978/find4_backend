@@ -305,18 +305,18 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
 	const singlePlayerEventListener = () => {
     // console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
 		fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove", true).then((events) => {
-      let gameIdSet = new Set();
+      // let gameIdSet = new Set();
 			events?.forEach((event) => {
 				let eventData = event.parsedJson as any;
         let gameId = eventData.game;
-				if (!gameIdSet.has(gameId)){
-          gameIdSet.add(gameId);
+        if(!!allGamesInfo.get(gameId)){
+          getBasicGameInfo(gameId);
+        }
+				// if (!gameIdSet.has(gameId)){
+        //   gameIdSet.add(gameId);
            console.log("jjjjj");
          console.log(allGamesInfo.get(gameId)?.nonce);
 	console.log(eventData.nonce); 
-  if(!!allGamesInfo.get(gameId)){
-    getBasicGameInfo(gameId);
-  }
 	  if(allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce){
             console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
@@ -352,7 +352,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
             }
           })
         }
-				}
+				// }
 			});
 		}).catch(error => {
       console.log(error);
