@@ -243,7 +243,7 @@ GetObjectContents(globalNonceAddy).then((obj) => {
 
 setInterval(() => {
   singlePlayerEventListener();
-}, 3600);
+}, 2500);
 
 setInterval(() => {
   addToListEventListener();
@@ -305,15 +305,15 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
 	const singlePlayerEventListener = () => {
     // console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
 		fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove", true).then((events) => {
-      // let gameIdSet = new Set();
+      let gameIdSet = new Set();
 			events?.forEach((event) => {
 				let eventData = event.parsedJson as any;
         let gameId = eventData.game;
-        if(!!allGamesInfo.get(gameId)){
+        if(!allGamesInfo.get(gameId)){
           getBasicGameInfo(gameId);
         }
-				// if (!gameIdSet.has(gameId)){
-        //   gameIdSet.add(gameId);
+				if (!gameIdSet.has(gameId)){
+          gameIdSet.add(gameId);
            console.log("jjjjj");
          console.log(allGamesInfo.get(gameId)?.nonce);
 	console.log(eventData.nonce); 
@@ -352,7 +352,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
             }
           })
         }
-				// }
+				}
 			});
 		}).catch(error => {
       console.log(error);
