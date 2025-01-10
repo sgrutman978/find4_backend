@@ -314,7 +314,10 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
            console.log("jjjjj");
          console.log(allGamesInfo.get(gameId)?.nonce);
 	console.log(eventData.nonce); 
-	  if(!allGamesInfo.get(gameId) || (allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce)){
+  if(!!allGamesInfo.get(gameId)){
+    getBasicGameInfo(gameId);
+  }
+	  if(allGamesInfo.get(gameId) && eventData.nonce == allGamesInfo.get(gameId)?.nonce){
             console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
