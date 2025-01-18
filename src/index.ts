@@ -173,8 +173,8 @@ app.get('/whoTurn', (req, res) => {
   if(!allGamesInfo.has(gameId)){
     getBasicGameInfo(gameId);
   }
-  console.log(allGamesInfo.get(gameId));
-  console.log(allGamesInfo);
+  // console.log(allGamesInfo.get(gameId));
+  // console.log(allGamesInfo);
   let turn = allGamesInfo.get(gameId)?.currentPlayerTurn;
   res.json({turn: turn});
 });
@@ -248,7 +248,7 @@ export const GetObjectContents = async (id: string): Promise<any> => {
 };
 
 GetObjectContents(globalNonceAddy).then((obj) => {
-  console.log(obj);
+  // console.log(obj);
   globalNonce = parseInt(obj.data.nonce);
 });
 
