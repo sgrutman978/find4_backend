@@ -251,13 +251,17 @@ setInterval(() => {
 
 const aiMoveCreateTx = (gameId: string, col: number): Transaction => {
   const txb = new Transaction();
-  txb.moveCall({
-    target: `${packageAddy}::single_player::ai_make_move`,
-    arguments: [txb.object(adminCap), txb.object(gameId), txb.pure.u64(col)],
-  });
-  txb.setSender(sender);
-  txb.setGasPrice(1000);
-  txb.setGasBudget(2000000);
+  try{
+     txb.moveCall({
+       target: `${packageAddy}::single_player::ai_make_move`,
+       arguments: [txb.object(adminCap), txb.object(gameId), txb.pure.u64(col)],
+     });
+     txb.setSender(sender);
+     txb.setGasPrice(1000);
+     txb.setGasBudget(2000000);
+  } catch(e){
+	  console.log("AIMoveCreateTx ERROR: " + col);
+  }
   return txb;
 }
 
@@ -314,10 +318,10 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
         }
 				if (!gameIdSet.has(gameId)){
           gameIdSet.add(gameId);
-           console.log("jjjjj");
+           console.log(gameId);
          console.log(allGamesInfo.get(gameId)?.nonce);
 	console.log(eventData.nonce); 
-	  if(allGamesInfo.get(gameId) && eventData.nonce >= allGamesInfo.get(gameId)?.nonce){
+	  if(allGamesInfo.get(gameId) && allGamesInfo.get(gameId)?.nonce && eventData.nonce >= allGamesInfo.get(gameId)?.nonce){
             console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
@@ -342,8 +346,8 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
 		console.log("glad ur happpppypypypypypypyp");
                 console.log(allGamesInfo.get(gameId));
 		console.log(allGamesInfo.get(gameId)?.nonce);
-		console.log(allGamesInfo.get(gameId)?.nonce! + 2);
-		allGamesInfo.get(gameId)!.nonce! = gameData.nonce + 1;
+		console.log(gameData.nonce + 1);
+		allGamesInfo.get(gameId)!.nonce! = parseInt(gameData.nonce) + 1;
                 allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
                 console.log(success);
               }).catch(error => {
