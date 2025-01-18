@@ -333,6 +333,8 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
         let gameId = eventData.game;
         if(!allGamesInfo.get(gameId)){
           getBasicGameInfo(gameId);
+        }else{
+          allGamesInfo.get(gameId)!.currentPlayerTurn = 2;
         }
 				// if (!gameIdSet.has(gameId)){
           // gameIdSet.add(gameId);
