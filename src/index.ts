@@ -125,6 +125,8 @@ const getBasicGameInfo = (gameId: string) => {
       p2: data.data.p2,
       winner: data.data.winner
     };
+    gamesPerUser.get(data.data.p1)?.add(gameId);
+    gamesPerUser.get(data.data.p2)?.add(gameId);
       allGamesInfo.set(gameId, gameInfo);
       // console.log(allGamesInfo);
       // console.log(gamesPerUser);
