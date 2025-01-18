@@ -267,13 +267,17 @@ setInterval(() => {
 
 const aiMoveCreateTx = (gameId: string, col: number): Transaction => {
   const txb = new Transaction();
-  txb.moveCall({
-    target: `${packageAddy}::single_player::ai_make_move`,
-    arguments: [txb.object(adminCap), txb.object(gameId), txb.pure.u64(col)],
-  });
-  txb.setSender(sender);
-  txb.setGasPrice(1000);
-  txb.setGasBudget(2000000);
+  try{
+     txb.moveCall({
+       target: `${packageAddy}::single_player::ai_make_move`,
+       arguments: [txb.object(adminCap), txb.object(gameId), txb.pure.u64(col)],
+     });
+     txb.setSender(sender);
+     txb.setGasPrice(1000);
+     txb.setGasBudget(2000000);
+  } catch(e){
+	  console.log("AIMoveCreateTx ERROR: " + col);
+  }
   return txb;
 }
 
@@ -355,6 +359,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
                   allGamesInfo.get(gameId)!.nonce! = gameData.nonce + 1;
                   allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
                   console.log(success);
+
               }).catch(error => {
                 console.log(error);
               });
