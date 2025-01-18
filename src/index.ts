@@ -361,15 +361,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
               let ai = new ConnectFourAI(board);
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
               let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.ceil(Math.random()*16)] : ai.findBestMove();
-              sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
-                //setup for next time player move come in in advance
-                  allGamesInfo.get(gameId)!.nonce! = gameData.nonce + 1;
-                  allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
-                  console.log(success);
-
-              }).catch(error => {
-                console.log(error);
-              });
+              aiMakeMove(gameId, gameData.nonce, bestMoveColumn);
             }else{
               getBasicGameInfo(gameId);
             }
@@ -381,6 +373,18 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
       console.log(error);
     });
 	};
+
+  const aiMakeMove = (gameId: string, gameDataNonce: number, bestMoveColumn: number) => {
+    sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
+      //setup for next time player move come in in advance
+        allGamesInfo.get(gameId)!.nonce! = gameDataNonce + 1;
+        allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
+        console.log(success);
+    }).catch(error => {
+      console.log(error);
+      aiMakeMove(gameId, gameDataNonce, bestMoveColumn);
+    });
+  }
 
   const newMultiPlayerGameEventListener = () => {
 		fetchEvents("multi_player::MultiPlayerGameStartedEvent2", false).then((events) => {
