@@ -25,7 +25,7 @@ class ConnectFourAI {
         let bestMove = -1;
         
         for (let col = 0; col < BOARD_WIDTH; col++) {
-            console.log(this.board);
+            // console.log(this.board);
             if (this.canPlay(this.board, col)) {
                 const row = this.getAvailableRow(this.board, col);
                 this.board[row][col] = PLAYER_AI;
