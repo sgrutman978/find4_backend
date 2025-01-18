@@ -1,6 +1,6 @@
 // import useSui from "./useSui";
 import { Transaction } from "@mysten/sui/transactions";
-import { getFullnodeUrl, QueryEventsParams, SuiClient, SuiObjectChangeCreated, SuiObjectResponse } from "@mysten/sui/client";
+import { EventId, getFullnodeUrl, QueryEventsParams, SuiClient, SuiObjectChangeCreated, SuiObjectResponse } from "@mysten/sui/client";
 // import { useCallback, useState } from "react";
 import ConnectFourAI from './ConnectFourAI';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
@@ -168,6 +168,12 @@ app.get('/myGames', (req, res) => {
   res.json({games: games});
 });
 
+app.get('/whoTurn', (req, res) => {
+  const gameId = req.query.gameId as string;
+  let turn = allGamesInfo.get(gameId);
+  res.json({turn: turn});
+});
+
 // app.listen(port, () => {
 //   console.log(`Server running at http://localhost:${port}/`);
 // });
@@ -241,13 +247,23 @@ GetObjectContents(globalNonceAddy).then((obj) => {
   globalNonce = parseInt(obj.data.nonce);
 });
 
+let lastMultiPlayerMoveEventId: EventId | null = null;
+
 setInterval(() => {
   singlePlayerEventListener();
 }, 2500);
 
 setInterval(() => {
-  addToListEventListener();
+  newMultiPlayerGameEventListener();
 }, 15000);
+
+setInterval(() => {
+  multiPlayerMoveEventListener().then((eventId) => {
+    lastMultiPlayerMoveEventId = eventId;
+  }).catch(e => {
+    console.log(e);
+  });
+}, 1500);
 
 const aiMoveCreateTx = (gameId: string, col: number): Transaction => {
   const txb = new Transaction();
@@ -309,25 +325,23 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
 	const singlePlayerEventListener = () => {
     // console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
 		fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove", true).then((events) => {
-      let gameIdSet = new Set();
+      // let gameIdSet = new Set();
 			events?.forEach((event) => {
 				let eventData = event.parsedJson as any;
         let gameId = eventData.game;
         if(!allGamesInfo.get(gameId)){
           getBasicGameInfo(gameId);
         }
-				if (!gameIdSet.has(gameId)){
-          gameIdSet.add(gameId);
-           console.log(gameId);
-         console.log(allGamesInfo.get(gameId)?.nonce);
-	console.log(eventData.nonce); 
-	  if(allGamesInfo.get(gameId) && allGamesInfo.get(gameId)?.nonce && eventData.nonce >= allGamesInfo.get(gameId)?.nonce){
+				// if (!gameIdSet.has(gameId)){
+          // gameIdSet.add(gameId);
+  //          console.log("jjjjj");
+  //        console.log(allGamesInfo.get(gameId)?.nonce);
+	// console.log(eventData.nonce); 
+	  if(allGamesInfo.get(gameId) && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
             console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
-            // console.log(eventData.nonce);
-            // console.log(gameData.nonce);
             if (eventData.nonce == gameData.nonce && gameData.gameType == 1 && !gameData.is_game_over){
               let originalBoard = gameData.board.reverse();
               let board = Array(6).fill(null).map(() => Array(7).fill(0));
@@ -336,39 +350,33 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
                   board[i][j] = parseInt(originalBoard[i][j]);
                 }
               }
-              console.log(board);
+              // console.log(board);
               let ai = new ConnectFourAI(board);
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
               let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.ceil(Math.random()*16)] : ai.findBestMove();
-      //        console.log(`The AI suggests playing in column: ${bestMoveColumn}`);
               sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
                 //setup for next time player move come in in advance
-		console.log("glad ur happpppypypypypypypyp");
-                console.log(allGamesInfo.get(gameId));
-		console.log(allGamesInfo.get(gameId)?.nonce);
-		console.log(gameData.nonce + 1);
-		allGamesInfo.get(gameId)!.nonce! = parseInt(gameData.nonce) + 1;
-                allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
-                console.log(success);
+                  allGamesInfo.get(gameId)!.nonce! = gameData.nonce + 1;
+                  allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
+                  console.log(success);
+
               }).catch(error => {
                 console.log(error);
               });
+            }else{
+              getBasicGameInfo(gameId);
             }
           })
         }
-				}
+				// }
 			});
 		}).catch(error => {
       console.log(error);
     });
 	};
 
-  const addToListEventListener = () => {
-    //console.log("Listening for AddToListEvent...");
+  const newMultiPlayerGameEventListener = () => {
 		fetchEvents("multi_player::MultiPlayerGameStartedEvent2", false).then((events) => {
-      // let newBiggestAddToListNonce = addToListNonce;
-      // console.log("NEW MULTI EVENT");
-      // console.log(events);
 			events?.forEach((event) => {
 				let eventData = event.parsedJson as any;
         let gameId = eventData.game;
@@ -376,75 +384,52 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
         let p2 = eventData.p2;
         let nonce = eventData.nonce;
         if(nonce > globalNonce){
-          // console.log("NEW EVENTTTTTTTTTTTTTTTTTTT");
-          // console.log(eventData);
           getBasicGameInfo(gameId);
-          getUserGamesAndLatestGameBasicInfo(p1, false);
-          getUserGamesAndLatestGameBasicInfo(p2, false);
+          // getUserGamesAndLatestGameBasicInfo(p1, false);
+          // getUserGamesAndLatestGameBasicInfo(p2, false);
+          gamesPerUser.get(p1)?.add(gameId);
+          gamesPerUser.get(p2)?.add(gameId);
           globalNonce = nonce;
-          // console.log("HHHHHHHHHHH");
-          // console.log(allGamesInfo);
-          // console.log(gamesPerUser);
-        }else{
-          // console.log("ALREADY SEEN")
         }
-        // console.log(allGamesInfo);
-        // console.log(gamesPerUser);
-
-        // let addy = eventData.addy;
-        // let nonce = parseInt(eventData.nonce);
-        //console.log(nonce);
-        //console.log(addToListNonce);
-        // console.log(firstGo);
-				// if (!addToListMap.has(addy) && nonce > addToListNonce && addToListNonce > 0){// && !firstGo){
-      //    console.log("ADD_TO_LIST_EVENT");
-          //console.log(eventData);
-        //   if(nonce > newBiggestAddToListNonce){
-        //     newBiggestAddToListNonce = nonce;
-        //   }
-        //   addToListMap.set(addy, eventData.points);
-				// }
 			});
-      // if(firstGo){
-      //   firstGo = false;
-
-      // }
-      //console.log("pizza4");
-      //console.log(addToListMap);
-      // makeMatches(newBiggestAddToListNonce);
 		}).catch(error => {
       console.log(error);
     });
 	};
 
-//   function makeMatches(newBiggestAddToListNonce: number){
-//     //console.log("pizza1");
-//     //console.log(newBiggestAddToListNonce);
-//     addToListNonce = newBiggestAddToListNonce;
-//     let keys = getSortedKeysByPoints();
-//     for(let i = 0; i < Math.floor(keys.length/2); i++){
-//       //console.log("pizza2");
-//       const p1 = keys[i];
-//       const p2 = keys[i+1];
-//       addToListMap.delete(p1);
-//       addToListMap.delete(p2);
-//       sendTransaction(newGameCreateTx(p1, p2)).then(success => {
-//         //console.log("pizza3");
-//         //console.log(success);
-//         addToListMap.delete(keys[i]);
-//         addToListMap.delete(keys[i+1]);
-//       }).catch(error => {
-//         console.log(error);
-//       });
-//     }
-//   }
 
-//   function getSortedKeysByPoints(): string[] {
-//     // Convert the Map to an array of[key, value] pairs
-//     return Array.from(addToListMap.entries())
-//         // Sort the array based on the points value in descending order
-//         .sort((a, b) => b[1] - a[1])
-//         // Map back to just the keys (profileAddy)
-//         .map(([key]) => key);
-// }
+
+  const multiPlayerMoveEventListener = async (): Promise<EventId | null> => {
+    try {
+      let queryParams: QueryEventsParams = {
+      query: {MoveEventType: `${(packageAddy)}::multi_player::MultiPlayerMoveEvent`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
+      order: "ascending",
+      limit: 10,
+      ...(lastMultiPlayerMoveEventId ? { cursor: lastMultiPlayerMoveEventId} : {})
+      };
+      const response = await suiClient.queryEvents(queryParams);
+      const events = [...response.data];
+      
+      if (events.length > 0) {
+        let newLastProcessedEventId: EventId | null = lastMultiPlayerMoveEventId;
+        for (const event of events) {
+          // PROCESS EVENT
+          getBasicGameInfo((event.parsedJson! as any).game);
+          newLastProcessedEventId = {
+            txDigest: event.id.txDigest,
+            eventSeq: event.id.eventSeq
+          };
+        }
+        // Update last processed event ID only after processing all new events
+        return newLastProcessedEventId;
+      }else{
+        return lastMultiPlayerMoveEventId;
+      }
+    } catch (e) {
+      console.log('fetchingEvents Error:' + (e! as any).status);
+      return lastMultiPlayerMoveEventId;
+    }
+  };
+
+
 
