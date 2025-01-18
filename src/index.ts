@@ -170,9 +170,12 @@ app.get('/myGames', (req, res) => {
 
 app.get('/whoTurn', (req, res) => {
   const gameId = req.query.gameId as string;
+  if(!allGamesInfo.has(gameId)){
+    getBasicGameInfo(gameId);
+  }
   console.log(allGamesInfo.get(gameId));
   console.log(allGamesInfo);
-  let turn = allGamesInfo.get(gameId).currentPlayerTurn;
+  let turn = allGamesInfo.get(gameId)?.currentPlayerTurn;
   res.json({turn: turn});
 });
 
