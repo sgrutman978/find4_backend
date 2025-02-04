@@ -32,6 +32,12 @@ type GameBasicInfo = {
   nonce?: number
 }
 
+export interface Profile {
+  profilePicUrl?: string,
+  username?: string,
+  points?: number
+};
+
 import * as dotenv from "dotenv";
 dotenv.config({ path: '.env' });
 
@@ -50,13 +56,16 @@ const OGAddy = port == 3000 ? process.env.REACT_APP_ORIGINAL_ADDRESS_FOR_EVENT_A
 const adminCap = port == 3000 ? process.env.REACT_APP_ADMIN_CAP_ADDRESS_MAINNET! : process.env.REACT_APP_ADMIN_CAP_ADDRESS!;
 const packageAddy = port == 3000 ? process.env.REACT_APP_PACKAGE_ADDRESS_MAINNET! : process.env.REACT_APP_PACKAGE_ADDRESS!;
 const globalNonceAddy = port == 3000 ? process.env.REACT_APP_NONCE_ADDRESS_MAINNET! : process.env.REACT_APP_NONCE_ADDRESS!;
+const innerProfilesTableAddy = "0x85728786020e36230cb9c38a181a51eff5b11259d4dd0d35850b298fd45d8a28";
 // let firstGo = true;
 const currentOnline = new Map<string, number>();
 const gamesPerUser = new Map<string, Set<string>>();
 const allGamesInfo = new Map<string, GameBasicInfo>();
 const allAddys = new Set<string>();
+const allProfiles = new Map<string, Profile>();
 allAddys.add("0x8418bb05799666b73c4645aa15e4d1ccae824e1487c01a665f51767826d192b7");
 allAddys.add("0x35f1de2d4b389c76e57a617688f9034e7ac57a22d0e19ff54541ae93e270d0b0");
+
 
 // Read SSL certificate and key files
 // const options = {
@@ -76,6 +85,11 @@ app.post('/imonline', (req, res) => {
   try{
    let addy = req.body.addy;
    allAddys.add(addy);
+   if(!allProfiles.has(addy)){
+    GetProfile(addy).then((prof) => {
+      allProfiles.set(addy, prof);
+    }).catch((e) => console.log(e));
+   }
    let epoch = Date.now();
    currentOnline.set(addy, epoch);
   //  console.log("ll");
@@ -125,6 +139,10 @@ const getBasicGameInfo = (gameId: string) => {
       p2: data.data.p2,
       winner: data.data.winner
     };
+    if(winner != 0){
+      GetGamesListForUser(data.data.p1);
+      GetGamesListForUser(data.data.p2);
+    }
     gamesPerUser.get(data.data.p1)?.add(gameId);
     gamesPerUser.get(data.data.p2)?.add(gameId);
       allGamesInfo.set(gameId, gameInfo);
@@ -134,9 +152,24 @@ const getBasicGameInfo = (gameId: string) => {
   });
 }
 
-app.get('/howmanyonline', (req, res) => {
-    res.json({size: currentOnline.size});
-});
+export const GetProfile = async (addy: String): Promise<Profile> => {
+	let data: Profile = {};
+    await suiClient.getDynamicFieldObject({
+		parentId: innerProfilesTableAddy!,
+		name: {
+            type: 'address',
+            value: addy,
+        },
+	}).then((data2) => {
+		if(data2!.data){
+			let tmp = (data2!.data!.content! as any).fields.value.fields;
+			console.log(tmp);
+
+			data = {username: tmp.username, points: parseInt(tmp.trophies), profilePicUrl: tmp.image_url};
+		}
+	});
+	return data;
+};
 
 function getRandomElementFromSet<T>(set: Set<T>): T | undefined {
   if (set.size === 0) {
@@ -146,6 +179,22 @@ function getRandomElementFromSet<T>(set: Set<T>): T | undefined {
   const randomIndex = Math.floor(Math.random() * values.length);
   return values[randomIndex];
 }
+
+app.get('/howmanyonline', (req, res) => {
+    res.json({size: currentOnline.size});
+});
+
+app.get('/leaderboard', (req, res) => {
+  console.log("\n\n\n\n\n\nyyyyyyyyyyy");
+  const mapEntries = Array.from(allProfiles.entries());
+  mapEntries.sort((a, b) => a[1].points! - b[1].points!);
+  const sortedMap = new Map(mapEntries);
+  let arr: {}[] = [];
+  sortedMap.forEach((value, key) => {
+      arr.push({addy: key, ...value});
+  });
+  res.json({profiles: arr});
+});
 
 app.get('/getP2', (req, res) => {
   const addy = req.query.addy as string;
@@ -203,6 +252,10 @@ setInterval(() => {
   addToListNonce = parseInt(obj.data.nonce);
 });*/
 }, 15000);
+
+setInterval(() => {
+
+}, 60000);
 
 export const GetGamesListForUser = async (addy: String): Promise<string[]> => {
   // console.log("22222MY GAMESSSSSSS2222");
