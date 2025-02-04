@@ -362,7 +362,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
               // console.log(board);
               let ai = new ConnectFourAI(board);
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
-              let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.ceil(Math.random()*16)] : ai.findBestMove();
+              let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.floor(Math.random()*16)] : ai.findBestMove();
               aiMakeMove(gameId, gameData.nonce, bestMoveColumn);
             }else{
               getBasicGameInfo(gameId);
