@@ -87,7 +87,12 @@ app.post('/imonline', (req, res) => {
    allAddys.add(addy);
    if(!allProfiles.has(addy)){
     GetProfile(addy).then((prof) => {
-      allProfiles.set(addy, prof);
+      console.log("ppppproooooffiiiiillleeee");
+      console.log(prof);
+      console.log(prof.points);
+      if(prof.points){
+        allProfiles.set(addy, prof);
+      }
     }).catch((e) => console.log(e));
    }
    let epoch = Date.now();
@@ -186,6 +191,7 @@ app.get('/howmanyonline', (req, res) => {
 
 app.get('/leaderboard', (req, res) => {
   console.log("\n\n\n\n\n\nyyyyyyyyyyy");
+  console.log(allProfiles);
   const mapEntries = Array.from(allProfiles.entries());
   mapEntries.sort((a, b) => a[1].points! - b[1].points!);
   const sortedMap = new Map(mapEntries);
