@@ -50,12 +50,12 @@ const kp_import_0 = Ed25519Keypair.fromSecretKey(process.env.REACT_APP_PK!);
 const pk = kp_import_0.getPublicKey();
 const sender = pk.toSuiAddress();
 // const addToListMap = new Map<string, number>();
-let globalNonce = 0;
+// let globalNonce = 0;
 export const innerGamesTrackerAddy = port == 3000 ? process.env.REACT_APP_GAMES_TRACKER_INNER_ADDY_MAINNET : process.env.REACT_APP_GAMES_TRACKER_INNER_ADDY;
 const OGAddy = port == 3000 ? process.env.REACT_APP_ORIGINAL_ADDRESS_FOR_EVENT_AND_OBJECT_TYPE_MAINNET! : process.env.REACT_APP_ORIGINAL_ADDRESS_FOR_EVENT_AND_OBJECT_TYPE!;
 const adminCap = port == 3000 ? process.env.REACT_APP_ADMIN_CAP_ADDRESS_MAINNET! : process.env.REACT_APP_ADMIN_CAP_ADDRESS!;
 const packageAddy = port == 3000 ? process.env.REACT_APP_PACKAGE_ADDRESS_MAINNET! : process.env.REACT_APP_PACKAGE_ADDRESS!;
-const globalNonceAddy = port == 3000 ? process.env.REACT_APP_NONCE_ADDRESS_MAINNET! : process.env.REACT_APP_NONCE_ADDRESS!;
+// const globalNonceAddy = port == 3000 ? process.env.REACT_APP_NONCE_ADDRESS_MAINNET! : process.env.REACT_APP_NONCE_ADDRESS!;
 const innerProfilesTableAddy = "0x85728786020e36230cb9c38a181a51eff5b11259d4dd0d35850b298fd45d8a28";
 // let firstGo = true;
 const currentOnline = new Map<string, number>();
@@ -308,10 +308,10 @@ export const GetObjectContents = async (id: string): Promise<any> => {
 	return dataSet ? {data: (data?.data?.content as any)["fields"], version: data.data?.owner} : {data: [], version: ""};
 };
 
-GetObjectContents(globalNonceAddy).then((obj) => {
-  // console.log(obj);
-  globalNonce = parseInt(obj.data.nonce);
-});
+// GetObjectContents(globalNonceAddy).then((obj) => {
+//   // console.log(obj);
+//   globalNonce = parseInt(obj.data.nonce);
+// });
 
 let lastMultiPlayerMoveEventId: EventId | null = null;
 
@@ -455,14 +455,14 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
         let p1 = eventData.p1;
         let p2 = eventData.p2;
         let nonce = eventData.nonce;
-        if(nonce > globalNonce){
+        // if(nonce > globalNonce){
           getBasicGameInfo(gameId);
           // getUserGamesAndLatestGameBasicInfo(p1, false);
           // getUserGamesAndLatestGameBasicInfo(p2, false);
           gamesPerUser.get(p1)?.add(gameId);
           gamesPerUser.get(p2)?.add(gameId);
-          globalNonce = nonce;
-        }
+          // globalNonce = nonce;
+        // }
 			});
 		}).catch(error => {
       console.log(error);
