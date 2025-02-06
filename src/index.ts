@@ -107,6 +107,30 @@ app.post('/imonline', (req, res) => {
   }
 });
 
+app.post('/updateProfile', (req, res) => {
+  try{
+   let addy = req.body.addy;
+   allAddys.add(addy);
+    GetProfile(addy).then((prof) => {
+      console.log("ppppproooooffiiiiillleeee");
+      console.log(prof);
+      console.log(prof.points);
+      if(prof.points){
+        allProfiles.set(addy, prof);
+      }
+    }).catch((e) => console.log(e));
+   let epoch = Date.now();
+   currentOnline.set(addy, epoch);
+  //  console.log("ll");
+   if(addy && !gamesPerUser.has(addy)){
+    getUserGamesAndLatestGameBasicInfo(addy, true);
+   }
+   res.send('Online');
+  } catch (e) {
+    console.log(e);
+  }
+});
+
 const getUserGamesAndLatestGameBasicInfo = (addy: string, getBasicInfo: boolean) => {
   // if (!gamesPerUser.has(addy)){
     // console.log("hh");
