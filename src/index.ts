@@ -120,7 +120,7 @@ const getUserGamesAndLatestGameBasicInfo = (addy: string, getBasicInfo: boolean)
             getBasicGameInfo(gameId);
           }
         });
-      });
+      }).catch(e => console.log(e));
   //  }
 };
 
@@ -154,7 +154,7 @@ const getBasicGameInfo = (gameId: string) => {
       // console.log(allGamesInfo);
       // console.log(gamesPerUser);
     // }
-  });
+  }).catch(e => console.log(e));
 }
 
 export const GetProfile = async (addy: String): Promise<Profile> => {
@@ -172,7 +172,7 @@ export const GetProfile = async (addy: String): Promise<Profile> => {
 
 			data = {username: tmp.username, points: parseInt(tmp.trophies), profilePicUrl: tmp.image_url};
 		}
-	});
+	}).catch(e => console.log(e));
 	return data;
 };
 
@@ -305,7 +305,7 @@ export const GetObjectContents = async (id: string): Promise<any> => {
 	}).catch(error => {
         console.log("GetObjectContents Error: " + error.status);
   });
-	return dataSet ? {data: (data?.data?.content as any)["fields"], version: data.data?.owner} : {data: [], version: ""};
+	return dataSet && data?.data?.content ? {data: (data?.data?.content as any)["fields"], version: data.data?.owner} : {data: [], version: ""};
 };
 
 // GetObjectContents(globalNonceAddy).then((obj) => {
