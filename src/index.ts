@@ -213,6 +213,11 @@ app.get('/getP2', (req, res) => {
   }
 });
 
+app.get('/getProfile', (req, res) => {
+  const addy = req.query.addy as string;
+  res.json({profile: allProfiles.get(addy)});
+});
+
 app.get('/myGames', (req, res) => {
   const addy = req.query.addy as string;
   let games: any[] = [];
