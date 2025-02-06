@@ -343,9 +343,14 @@ export const GetObjectContents = async (id: string): Promise<any> => {
 // });
 
 let lastMultiPlayerMoveEventId: EventId | null = null;
+let lastSinglePlayerMoveEventId: EventId | null = null;
 
 setInterval(() => {
-  singlePlayerEventListener();
+  singlePlayerEventListener().then((eventId) => {
+    lastSinglePlayerMoveEventId = eventId;
+  }).catch(e => {
+    console.log(e);
+  });
 }, 2500);
 
 setInterval(() => {
@@ -417,11 +422,25 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
 	}
   };
 
-	const singlePlayerEventListener = () => {
+	const singlePlayerEventListener = async (): Promise<EventId | null> => {
     // console.log("Listening for SinglePlayerGameHumanPlayerMadeAMove...");
-		fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove", true).then((events) => {
+
+    try {
+      let queryParams: QueryEventsParams = {
+      query: {MoveEventType: `${OGAddy}::single_player::SinglePlayerGameHumanPlayerMadeAMove`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
+      order: "descending",
+      limit: 10,
+      ...(lastSinglePlayerMoveEventId ? { cursor: lastSinglePlayerMoveEventId} : {})
+      };
+      const response = await suiClient.queryEvents(queryParams);
+      const responseData = [...response.data];
+      // return responseData || [];
+   
+if(responseData.length > 0){
+  let newLastProcessedEventId: EventId | null = lastSinglePlayerMoveEventId;
+		// fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove", true).then((events) => {
       // let gameIdSet = new Set();
-			events?.forEach((event) => {
+			responseData?.forEach((event) => {
 				let eventData = event.parsedJson as any;
         let gameId = eventData.game;
         if(!allGamesInfo.get(gameId)){
@@ -434,7 +453,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
   //          console.log("jjjjj");
   //        console.log(allGamesInfo.get(gameId)?.nonce);
 	// console.log(eventData.nonce); 
-	  if(allGamesInfo.get(gameId) && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
+	  if(allGamesInfo.get(gameId)){// && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
             // console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
@@ -456,14 +475,23 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
             }else{
               getBasicGameInfo(gameId);
             }
-          })
+          }).catch(error => {
+            console.log(error);
+          });
         }
 				// }
+        
 			});
-		}).catch(error => {
-      console.log(error);
-    });
-	};
+      return newLastProcessedEventId;
+    }else{
+      return lastSinglePlayerMoveEventId;
+    }
+ 
+	} catch (e) {
+    console.log('fetchingEvents Error:' + (e! as any).status);
+    return lastSinglePlayerMoveEventId;
+  };
+};
 
   const aiMakeMove = (gameId: string, gameDataNonce: number, bestMoveColumn: number) => {
     sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
