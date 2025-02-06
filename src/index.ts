@@ -435,7 +435,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
   //        console.log(allGamesInfo.get(gameId)?.nonce);
 	// console.log(eventData.nonce); 
 	  if(allGamesInfo.get(gameId) && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
-            console.log("PLAYER MADE A MOVE, AI'S TURN");
+            // console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
@@ -451,6 +451,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
               let ai = new ConnectFourAI(board);
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
               let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.floor(Math.random()*16)] : ai.findBestMove();
+              console.log(`best move ${bestMoveColumn}`);
               aiMakeMove(gameId, gameData.nonce, bestMoveColumn);
             }else{
               getBasicGameInfo(gameId);
