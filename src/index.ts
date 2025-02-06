@@ -474,7 +474,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
   const multiPlayerMoveEventListener = async (): Promise<EventId | null> => {
     try {
       let queryParams: QueryEventsParams = {
-      query: {MoveEventType: `${(packageAddy)}::multi_player::MultiPlayerMoveEvent`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
+      query: {MoveEventType: `0x87e2962a5315eeff4f1cf2848180a9b58a323053966780e60a9f127bcf5ccd6b::multi_player::MultiPlayerMoveEvent`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
       order: "ascending",
       limit: 10,
       ...(lastMultiPlayerMoveEventId ? { cursor: lastMultiPlayerMoveEventId} : {})
