@@ -455,16 +455,21 @@ if(responseData.length > 0){
         }else{
           allGamesInfo.get(gameId)!.currentPlayerTurn = 2;
         }
+        console.log("yyyyyyyyyeeeeeeee");
+        console.log(gameId);
+        console.log(event.id.txDigest);
+
 				// if (!gameIdSet.has(gameId)){
           // gameIdSet.add(gameId);
   //          console.log("jjjjj");
   //        console.log(allGamesInfo.get(gameId)?.nonce);
 	// console.log(eventData.nonce); 
 	  if(allGamesInfo.get(gameId)){// && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
-            // console.log("PLAYER MADE A MOVE, AI'S TURN");
+            console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
+            console.log(gameData.current_player);
             if (/*eventData.nonce == gameData.nonce && */gameData.gameType == 1 && !gameData.is_game_over && gameData.current_player == 2){
               let originalBoard = gameData.board.reverse();
               let board = Array(6).fill(null).map(() => Array(7).fill(0));
