@@ -432,7 +432,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
       let queryParams: QueryEventsParams = {
       query: {MoveEventType: `${OGAddy}::single_player::SinglePlayerGameHumanPlayerMadeAMove`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
       order: "ascending",
-      limit: 10,
+      limit: 100,
       ...(lastSinglePlayerMoveEventId ? { cursor: lastSinglePlayerMoveEventId} : {})
       };
       const response = await suiClient.queryEvents(queryParams);
@@ -453,18 +453,18 @@ if(responseData.length > 0){
         if(!allGamesInfo.get(gameId)){
           getBasicGameInfo(gameId);
         }else{
-          // allGamesInfo.get(gameId)!.currentPlayerTurn = 2;
+           allGamesInfo.get(gameId)!.currentPlayerTurn = 2; // set to 2 so gui can read player has switched
         }
         // console.log("yyyyyyyyyeeeeeeee");
         // console.log(gameId);
-        // console.log(event.id.txDigest);
-
+         console.log(event.id.txDigest);
+	console.log(allGamesInfo.get(gameId));
 				// if (!gameIdSet.has(gameId)){
           // gameIdSet.add(gameId);
   //          console.log("jjjjj");
   //        console.log(allGamesInfo.get(gameId)?.nonce);
 	// console.log(eventData.nonce); 
-	  if(allGamesInfo.get(gameId) && allGamesInfo.get(gameId)?.currentPlayerTurn == 2 && allGamesInfo.get(gameId)?.winner == 0){// && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
+	  if(allGamesInfo.get(gameId) && !allGamesInfo.get(gameId)?.winner){// && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
             // console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
