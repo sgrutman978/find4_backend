@@ -217,8 +217,8 @@ app.get('/howmanyonline', (req, res) => {
 });
 
 app.get('/leaderboard', (req, res) => {
-  console.log("\n\n\n\n\n\nyyyyyyyyyyy");
-  console.log(allProfiles);
+  // console.log("\n\n\n\n\n\nyyyyyyyyyyy");
+  // console.log(allProfiles);
   const mapEntries = Array.from(allProfiles.entries());
   mapEntries.sort((a, b) => a[1].points! - b[1].points!);
   const sortedMap = new Map(mapEntries);
@@ -233,7 +233,7 @@ app.get('/getP2', (req, res) => {
   const addy = req.query.addy as string;
   while(true){
     let randomAddy = getRandomElementFromSet(allAddys);
-    if(randomAddy && addy != randomAddy){
+    if(randomAddy && addy != randomAddy && allProfiles.has(randomAddy)){
       res.json({p2: randomAddy});
       break;
     }
@@ -453,23 +453,23 @@ if(responseData.length > 0){
         if(!allGamesInfo.get(gameId)){
           getBasicGameInfo(gameId);
         }else{
-          allGamesInfo.get(gameId)!.currentPlayerTurn = 2;
+          // allGamesInfo.get(gameId)!.currentPlayerTurn = 2;
         }
-        console.log("yyyyyyyyyeeeeeeee");
-        console.log(gameId);
-        console.log(event.id.txDigest);
+        // console.log("yyyyyyyyyeeeeeeee");
+        // console.log(gameId);
+        // console.log(event.id.txDigest);
 
 				// if (!gameIdSet.has(gameId)){
           // gameIdSet.add(gameId);
   //          console.log("jjjjj");
   //        console.log(allGamesInfo.get(gameId)?.nonce);
 	// console.log(eventData.nonce); 
-	  if(allGamesInfo.get(gameId)){// && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
-            console.log("PLAYER MADE A MOVE, AI'S TURN");
+	  if(allGamesInfo.get(gameId) && allGamesInfo.get(gameId)?.currentPlayerTurn == 2 && allGamesInfo.get(gameId)?.winner == 0){// && eventData.nonce >= allGamesInfo.get(gameId)?.nonce!){
+            // console.log("PLAYER MADE A MOVE, AI'S TURN");
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
-            console.log(gameData.current_player);
+            // console.log(gameData.current_player);
             if (/*eventData.nonce == gameData.nonce && */gameData.gameType == 1 && !gameData.is_game_over && gameData.current_player == 2){
               let originalBoard = gameData.board.reverse();
               let board = Array(6).fill(null).map(() => Array(7).fill(0));
@@ -486,7 +486,7 @@ if(responseData.length > 0){
               let ai = new ConnectFourAI(board);
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
               let bestMoveColumn = count < 2 ? firstMoveChoices[Math.floor(Math.random()*16)] : ai.findBestMove();
-              console.log(`best move ${bestMoveColumn}`);
+              // console.log(`best move ${bestMoveColumn}`);
               aiMakeMove(gameId, bestMoveColumn, bestMoveColumn);
             }else{
               getBasicGameInfo(gameId);
