@@ -444,6 +444,10 @@ if(responseData.length > 0){
 		// fetchEvents("single_player::SinglePlayerGameHumanPlayerMadeAMove", true).then((events) => {
       // let gameIdSet = new Set();
 			responseData?.forEach((event) => {
+        newLastProcessedEventId = {
+          txDigest: event.id.txDigest,
+          eventSeq: event.id.eventSeq
+        };
 				let eventData = event.parsedJson as any;
         let gameId = eventData.game;
         if(!allGamesInfo.get(gameId)){
