@@ -28,8 +28,9 @@ type GameBasicInfo = {
   winner?: number,
   lastTurnEpoch?: number,
   p1: string,
-  p2: string
-  nonce?: number
+  p2: string,
+  // nonce?: number,
+  lastMoveColumn?: number // nonce onchain
 }
 
 export interface Profile {
@@ -87,9 +88,9 @@ app.post('/imonline', (req, res) => {
    allAddys.add(addy);
    if(!allProfiles.has(addy)){
     GetProfile(addy).then((prof) => {
-      console.log("ppppproooooffiiiiillleeee");
-      console.log(prof);
-      console.log(prof.points);
+      // console.log("ppppproooooffiiiiillleeee");
+      // console.log(prof);
+      // console.log(prof.points);
       if(prof.points){
         allProfiles.set(addy, prof);
       }
@@ -155,13 +156,15 @@ const getBasicGameInfo = (gameId: string) => {
     // if (!allGamesInfo.has(gameId)){
     let winner = parseInt(data.data.winner);
 
+
     let gameInfo: GameBasicInfo = winner == 0 ? {
       type: parseInt(data.data.gameType),
       p1: data.data.p1,
       p2: data.data.p2,
       currentPlayerTurn: data.data.current_player,
       lastTurnEpoch: 0,
-      nonce: parseInt(data.data.nonce)
+      // nonce: ,
+      lastMoveColumn: parseInt(data.data.nonce)
     } : {
       type: parseInt(data.data.gameType),
       p1: data.data.p1,
@@ -458,20 +461,24 @@ if(responseData.length > 0){
             //double check
           GetObjectContents(gameId).then((wrappedGameData) => {
             let gameData = wrappedGameData.data;
-            if (eventData.nonce == gameData.nonce && gameData.gameType == 1 && !gameData.is_game_over){
+            if (/*eventData.nonce == gameData.nonce && */gameData.gameType == 1 && !gameData.is_game_over){
               let originalBoard = gameData.board.reverse();
               let board = Array(6).fill(null).map(() => Array(7).fill(0));
+              let count = 0;
               for (let i = 0; i < board.length; i++){
                 for (let j = 0; j < board[0].length; j++){
                   board[i][j] = parseInt(originalBoard[i][j]);
+                  if(board[i][j] != 0){
+                    count = count + 1;
+                  }
                 }
               }
               // console.log(board);
               let ai = new ConnectFourAI(board);
               let firstMoveChoices = [0,1,1,2,2,2,3,3,3,3,4,4,4,5,5,6];
-              let bestMoveColumn = gameData.nonce == 1 ? firstMoveChoices[Math.floor(Math.random()*16)] : ai.findBestMove();
+              let bestMoveColumn = count < 2 ? firstMoveChoices[Math.floor(Math.random()*16)] : ai.findBestMove();
               console.log(`best move ${bestMoveColumn}`);
-              aiMakeMove(gameId, gameData.nonce, bestMoveColumn);
+              aiMakeMove(gameId, bestMoveColumn, bestMoveColumn);
             }else{
               getBasicGameInfo(gameId);
             }
@@ -496,12 +503,13 @@ if(responseData.length > 0){
   const aiMakeMove = (gameId: string, gameDataNonce: number, bestMoveColumn: number) => {
     sendTransaction(aiMoveCreateTx(gameId, bestMoveColumn)).then(success => {
       //setup for next time player move come in in advance
-        allGamesInfo.get(gameId)!.nonce! = gameDataNonce + 1;
+        // allGamesInfo.get(gameId)!.nonce! = gameDtaNonce + 1;
+        allGamesInfo.get(gameId)!.lastMoveColumn! = bestMoveColumn;
         allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
         console.log(success);
     }).catch(error => {
       console.log(error);
-      aiMakeMove(gameId, gameDataNonce, bestMoveColumn);
+      aiMakeMove(gameId, bestMoveColumn, bestMoveColumn);
     });
   }
 
@@ -512,7 +520,7 @@ if(responseData.length > 0){
         let gameId = eventData.game;
         let p1 = eventData.p1;
         let p2 = eventData.p2;
-        let nonce = eventData.nonce;
+        // let nonce = eventData.nonce;
         // if(nonce > globalNonce){
           getBasicGameInfo(gameId);
           // getUserGamesAndLatestGameBasicInfo(p1, false);
