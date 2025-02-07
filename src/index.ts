@@ -113,9 +113,9 @@ app.post('/updateProfile', (req, res) => {
    let addy = req.body.addy;
    allAddys.add(addy);
     GetProfile(addy).then((prof) => {
-      console.log("ppppproooooffiiiiillleeee");
-      console.log(prof);
-      console.log(prof.points);
+      // console.log("ppppproooooffiiiiillleeee");
+      // console.log(prof);
+      // console.log(prof.points);
       if(prof.points){
         allProfiles.set(addy, prof);
       }
