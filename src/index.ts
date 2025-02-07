@@ -431,7 +431,7 @@ export const fetchEvents = async (eventType: string, OG: boolean) => {
     try {
       let queryParams: QueryEventsParams = {
       query: {MoveEventType: `${OGAddy}::single_player::SinglePlayerGameHumanPlayerMadeAMove`},//MoveEventModule: { package: process.env.REACT_APP_PACKAGE_ADDRESS, module: "single_player"}},
-      order: "descending",
+      order: "ascending",
       limit: 10,
       ...(lastSinglePlayerMoveEventId ? { cursor: lastSinglePlayerMoveEventId} : {})
       };
