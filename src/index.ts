@@ -515,6 +515,7 @@ if(responseData.length > 0){
         // allGamesInfo.get(gameId)!.nonce! = gameDtaNonce + 1;
         allGamesInfo.get(gameId)!.lastMoveColumn! = bestMoveColumn;
         allGamesInfo.get(gameId)!.currentPlayerTurn! = 1;
+        getBasicGameInfo(gameId);
         console.log(success);
     }).catch(error => {
       console.log(error);
