@@ -156,6 +156,7 @@ const getBasicGameInfo = (gameId: string) => {
     // if (!allGamesInfo.has(gameId)){
     let winner = parseInt(data.data.winner);
 
+    if(data.board){
     let originalBoard = data.board.reverse();
     let board = Array(6).fill(null).map(() => Array(7).fill(0));
     let count = 0;
@@ -170,6 +171,7 @@ const getBasicGameInfo = (gameId: string) => {
     if(count == 42){
       winner = 5;
     }
+  }
 
     let gameInfo: GameBasicInfo = winner == 0 ? {
       type: parseInt(data.data.gameType),
