@@ -230,6 +230,10 @@ app.get('/howmanyonline', (req, res) => {
     res.json({size: currentOnline.size});
 });
 
+app.get('/onlineList', (req, res) => {
+  res.json({addys: currentOnline.keys()});
+});
+
 app.get('/leaderboard', (req, res) => {
   // console.log("\n\n\n\n\n\nyyyyyyyyyyy");
   // console.log(allProfiles);
