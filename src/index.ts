@@ -156,6 +156,20 @@ const getBasicGameInfo = (gameId: string) => {
     // if (!allGamesInfo.has(gameId)){
     let winner = parseInt(data.data.winner);
 
+    let originalBoard = data.board.reverse();
+    let board = Array(6).fill(null).map(() => Array(7).fill(0));
+    let count = 0;
+    for (let i = 0; i < board.length; i++){
+      for (let j = 0; j < board[0].length; j++){
+        board[i][j] = parseInt(originalBoard[i][j]);
+        if(board[i][j] != 0){
+          count = count + 1;
+        }
+      }
+    }
+    if(count == 42){
+      winner = 5;
+    }
 
     let gameInfo: GameBasicInfo = winner == 0 ? {
       type: parseInt(data.data.gameType),
@@ -169,7 +183,7 @@ const getBasicGameInfo = (gameId: string) => {
       type: parseInt(data.data.gameType),
       p1: data.data.p1,
       p2: data.data.p2,
-      winner: data.data.winner
+      winner: winner
     };
     if(winner != 0){
       GetGamesListForUser(data.data.p1);
